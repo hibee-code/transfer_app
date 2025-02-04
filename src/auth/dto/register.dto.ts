@@ -1,6 +1,7 @@
 import {
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsString,
   IsStrongPassword,
   MinLength,
@@ -23,5 +24,9 @@ export class SignUpDto {
   @IsString()
   @IsStrongPassword()
   @MinLength(8)
-  password: string;
+  passwordHash: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  phoneNumber: string;
 }
