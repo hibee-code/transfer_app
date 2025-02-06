@@ -22,6 +22,9 @@ export class User {
   @Column({ unique: true })
   phoneNumber: string;
 
+  @Column({ unique: true })
+  bankAccountNumber: string;
+
   // @OneToMany(() => BankAccount, (account) => account.user)
   // accounts: BankAccount[];
 
