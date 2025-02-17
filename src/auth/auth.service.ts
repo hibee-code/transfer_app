@@ -6,6 +6,8 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -93,6 +95,18 @@ export class AuthService {
   }
 
   private generateBankAccountNumber(): string {
-    return `BA${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+    return `${Math.floor(1000000000 + Math.random() * 9000000000)}`;
   }
+
+  async forgotPassword(email: string; forgotPasswordDto: ForgotPasswordDto): Promise<String> {
+    const user = await this.dbManager.findOne(User, { where: { email } });
+    if(!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = resetToken;
+    await this.dbManager.save(user);
 }
+}
+

@@ -7,6 +7,7 @@ import { dataSourceOptions } from './config/database/db.config';
 import { validate } from 'class-validator';
 import appConfig from './config/app.config';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ConfigModule } from '@nestjs/config/dist/config.module';
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

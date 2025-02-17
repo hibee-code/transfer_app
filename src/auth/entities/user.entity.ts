@@ -1,11 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-// import { BankAccount } from '../../bank-accounts/entities/bank-account.entity';
-// import { Transaction } from '../../transactions/entities/transaction.entity';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn({ type: 'bigint' })
-  id: string;
+  id: number;
 
   @Column({ type: 'varchar' })
   firstName: string;
@@ -25,9 +23,12 @@ export class User {
   @Column({ unique: true })
   bankAccountNumber: string;
 
-  // @OneToMany(() => BankAccount, (account) => account.user)
-  // accounts: BankAccount[];
+  @Column({ type: 'varchar', nullable: true })
+  transactionPinHash?: string;
 
-  // @OneToMany(() => Transaction, (transaction) => transaction.user)
-  // transactions: Transaction[];
+  @Column({ nullable: true })
+  passwordResetToken?: string;
+
+  @Column({ nullable: true })
+  pinResetToken?: string;
 }
