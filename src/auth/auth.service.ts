@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { SignUpDto } from './dto/register.dto';
 import { User } from './entities/user.entity';
@@ -8,6 +8,7 @@ import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import * as crypto from 'crypto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly datasource: DataSource,
+    private readonly mailService: MailService,
   ) {
     this.dbManager = datasource.manager;
     this.jwtSecret = this.configService.get<string>(
@@ -98,7 +100,9 @@ export class AuthService {
     return `${Math.floor(1000000000 + Math.random() * 9000000000)}`;
   }
 
-  async forgotPassword(email: string; forgotPasswordDto: ForgotPasswordDto): Promise<String> {
+  async forgotPassword( forgotPasswordDto: ForgotPasswordDto): Promise<String> {
+    const { email } = forgotPasswordDto;
+
     const user = await this.dbManager.findOne(User, { where: { email } });
     if(!user) {
       throw new UnauthorizedException('User not found');
@@ -107,6 +111,43 @@ export class AuthService {
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.passwordResetToken = resetToken;
     await this.dbManager.save(user);
-}
+
+
+      // Send PIN reset email using MailService
+  await this.mailService.sendPasswordResetEmail(email, resetToken, 'Transaction PIN');
+
+  return 'Transaction PIN reset link sent to email';
 }
 
+async resetPassword(email: string, newPassword: string, resetToken: string): Promise<string> {
+  // Find the user with the given email
+  const user = await this.dbManager.findOne(User, { where: { email } });
+  if (!user || !user.passwordResetToken || !user.passwordResetExpires) {
+    throw new BadRequestException('Invalid or expired reset token');
+  }
+
+  // Check if the token has expired
+  if (user.passwordResetExpires < new Date()) {
+    throw new BadRequestException('Reset token has expired');
+  }
+
+  // Verify the reset token
+  const isTokenValid = await bcrypt.compare(resetToken, user.passwordResetToken);
+  if (!isTokenValid) {
+    throw new BadRequestException('Invalid reset token');
+  }
+
+  // Hash the new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update user's password and clear reset token
+  await this.dbManager.update(User, { email }, {
+    passwordHash: hashedPassword,
+    passwordResetToken: undefined,
+    passwordResetExpires: undefined,
+  });
+
+  return 'Password has been reset successfully';
+}
+
+}

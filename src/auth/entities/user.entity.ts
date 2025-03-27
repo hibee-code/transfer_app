@@ -24,11 +24,14 @@ export class User {
   bankAccountNumber: string;
 
   @Column({ type: 'varchar', nullable: true })
-  transactionPinHash?: string;
+  transactionPinHash: string;
 
   @Column({ nullable: true })
-  passwordResetToken?: string;
+  passwordResetToken: string;
 
-  @Column({ nullable: true })
-  pinResetToken?: string;
+  @Column({type: 'varchar', nullable: true})
+  pinResetToken: string;
+
+  @Column({type: 'timestamp'})
+  passwordResetExpires: Date;
 }
