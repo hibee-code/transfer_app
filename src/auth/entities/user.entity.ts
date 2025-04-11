@@ -24,7 +24,7 @@ export class User {
   bankAccountNumber: string;
 
   @Column({ type: 'varchar', nullable: true })
-  transactionPinHash: string;
+  hashedPin: string;
 
   @Column({ nullable: true })
   passwordResetToken: string;
@@ -32,6 +32,9 @@ export class User {
   @Column({type: 'varchar', nullable: true})
   pinResetToken: string;
 
-  @Column({type: 'timestamp'})
+  @Column({type: 'timestamp', nullable: true})
   passwordResetExpires: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  pinExpiresAt: Date;
 }

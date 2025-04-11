@@ -9,6 +9,9 @@ import { ConfigService } from '@nestjs/config';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import * as crypto from 'crypto';
 import { MailService } from '../mail/mail.service';
+import { VerifyPinDto } from './dto/verify-pin.dto';
+import { RequestPinDto } from './dto/request-pin.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -119,7 +122,8 @@ export class AuthService {
   return 'Transaction PIN reset link sent to email';
 }
 
-async resetPassword(email: string, newPassword: string, resetToken: string): Promise<string> {
+async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<string> {
+  const { email, newPassword, passwordResetToken } = resetPasswordDto;
   // Find the user with the given email
   const user = await this.dbManager.findOne(User, { where: { email } });
   if (!user || !user.passwordResetToken || !user.passwordResetExpires) {
@@ -132,7 +136,7 @@ async resetPassword(email: string, newPassword: string, resetToken: string): Pro
   }
 
   // Verify the reset token
-  const isTokenValid = await bcrypt.compare(resetToken, user.passwordResetToken);
+  const isTokenValid = await bcrypt.compare(passwordResetToken, user.passwordResetToken);
   if (!isTokenValid) {
     throw new BadRequestException('Invalid reset token');
   }
@@ -149,5 +153,57 @@ async resetPassword(email: string, newPassword: string, resetToken: string): Pro
 
   return 'Password has been reset successfully';
 }
+private async generatePin(): Promise<string> {
+  return Math.floor(100000 + Math.random() * 900000).toString(); 
+  }
+async requestPin(Request: RequestPinDto): Promise<string> {
+  const { email } = Request;
+    const user = await this.dbManager.findOne(User, { where: { email } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    // generate pin and store it in the database
 
+    const pin = await this.generatePin();
+    const hashedPin = await bcrypt.hash(pin, 10);
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+
+    user.hashedPin = hashedPin;
+    user.pinExpiresAt = expiresAt;
+
+    await this.dbManager.save(user);
+
+    // Send PIN reset email using MailService
+    await this.mailService.sendPinEmail(email, pin);
+
+    return 'Transaction PIN reset link sent to email';
+  }
+
+  async verifyPin(verify: VerifyPinDto): Promise<string> {
+    const {email, pin} = verify;
+    const user = await this.dbManager.findOne(User, { where: { email } });
+    if (!user || !user.hashedPin || !user.pinExpiresAt) {
+      throw new BadRequestException('Invalid or expired PIN');
+    }
+
+    // Check if the PIN has expired
+    if (user.pinExpiresAt < new Date()) {
+      throw new BadRequestException('PIN has expired');
+    }
+
+    // Verify the PIN
+    const isPinValid = await bcrypt.compare(pin, user.hashedPin);
+    if (!isPinValid) {
+      throw new BadRequestException('Invalid PIN');
+    }
+
+    // Clear the PIN and expiry date
+    await this.dbManager.update(User, { email }, {
+      hashedPin: undefined,
+      pinExpiresAt: undefined,
+    });
+
+    return 'PIN has been verified successfully';
+  }
 }
