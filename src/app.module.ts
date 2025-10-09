@@ -7,7 +7,12 @@ import { dataSourceOptions } from './config/database/db.config';
 import { validate } from 'class-validator';
 import appConfig from './config/app.config';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
+
 import { MailModule } from './mail/mail.module';
+import { UsersModule } from './users/users.module';
+import { WalletModule } from './wallet/wallet.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -19,8 +24,12 @@ import { MailModule } from './mail/mail.module';
       expandVariables: true,
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
-    AuthModule,
-    MailModule,
+  AuthModule,
+  MailModule,
+  UsersModule,
+  WalletModule,
+  TransactionsModule,
+  PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
