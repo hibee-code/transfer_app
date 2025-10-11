@@ -4,7 +4,6 @@ import axios from 'axios';
 @Injectable()
 export class PaymentService {
   async pay(amount: number, toAccount: string): Promise<any> {
-    // Example: Paystack integration (simplified)
     const response = await axios.post(
       'https://api.paystack.co/transaction/initialize',
       {

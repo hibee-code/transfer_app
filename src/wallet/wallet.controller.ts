@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FundWalletDto } from './dto/fund-wallet.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('wallet')
 @UseGuards(JwtAuthGuard)

@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TransactionsService } from './transactions.service';
 import { TransferDto } from './dto/transfer.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('transactions')
 @UseGuards(JwtAuthGuard)

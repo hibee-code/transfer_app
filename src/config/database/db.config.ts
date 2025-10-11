@@ -1,6 +1,8 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
-import 'dotenv/config';
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { pathFromSrc } from '../helper/general';
+
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
@@ -14,6 +16,14 @@ export const dataSourceOptions: DataSourceOptions = {
 };
 const dataSource = new DataSource(dataSourceOptions);
 export default dataSource;
+
+console.log('Loaded DB config:', {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  name: process.env.DB_NAME,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+});
 
 dataSource
   .initialize()
